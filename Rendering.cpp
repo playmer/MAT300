@@ -60,8 +60,8 @@ const char* lineVertexShader = R"foo(
 
 uniform mat4 Projection, View, Model;
 
-in vec4 inPosition;
-in vec4 inColor;
+layout (location = 0) in vec4 inPosition;
+layout (location = 1) in vec4 inColor;
 
 out vec4 outColor;
 
@@ -73,7 +73,6 @@ void main()
                 View * 
                 Model * 
                 inPosition;
-  //gl_Position = inPosition;
 }
 )foo";
 
@@ -85,6 +84,7 @@ out vec4 out_color;
 
 void main()
 {
+  //out_color = vec4(1.0f,0.0f,0.0f,1.0f);
   out_color = inColor;
 }
 )foo";
@@ -166,13 +166,13 @@ void CurveBuilder::Draw()
   glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_DYNAMIC_DRAW);
 
-  glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
-  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(0);
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)));
+  glEnableVertexAttribArray(1);
 
   glUseProgram(mShaderProgram);
-  glLineWidth(1.5f);
+  glLineWidth(4.5f);
   glDrawArrays(GL_LINE_STRIP, 0, static_cast<int>(mVertices.size()));
 
   if (mShouldClear)
