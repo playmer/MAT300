@@ -104,6 +104,11 @@ CurveBuilder::CurveBuilder()
   glGenVertexArrays(1, &mVertexArrayObject);
   glBindVertexArray(mVertexArrayObject);
 
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
   // Create a Vector Buffer Object that will store the vertices on video memory
   glGenBuffers(1, &mVertexBufferObject);
 
