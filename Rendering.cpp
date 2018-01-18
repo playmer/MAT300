@@ -1,13 +1,14 @@
+#include "Projects.hpp"
 #include "Rendering.hpp"
 
 
 // Compile a shader
-GLuint LoadAndCompileShader(const char *aSource, GLenum shaderType)
+GLuint LoadAndCompileShader(const char *aSource, GLenum aShaderType)
 {
   // Load a shader from an external file
 
   // Compile the shader
-  GLuint shader = glCreateShader(shaderType);
+  GLuint shader = glCreateShader(aShaderType);
   glShaderSource(shader, 1, &aSource, NULL);
   glCompileShader(shader);
 
@@ -57,7 +58,7 @@ void LinkProgram(GLuint aProgram)
 const char* lineVertexShader = R"foo(
 #version 330
 
-//uniform mat4 ProjectionMatrix, ViewMatrix, ModelMatrix;
+uniform mat4 Projection, View, Model;
 
 in vec4 inPosition;
 in vec4 inColor;
@@ -68,11 +69,11 @@ void main()
 {
   outColor = inColor;
 
-//  gl_Position = ProjectionMatrix * 
-//                ViewMatrix * 
-//                ModelMatrix * 
-//                inPosition;
-  gl_Position = inPosition;
+  gl_Position = Projection * 
+                View * 
+                Model * 
+                inPosition;
+  //gl_Position = inPosition;
 }
 )foo";
 
@@ -89,8 +90,10 @@ void main()
 )foo";
 
 
-CurveBuilder::CurveBuilder()
+CurveBuilder::CurveBuilder(Project *aProject)
   : mScale{1.0f, 1.0f, 1.0f}
+  , mProject(aProject)
+  , mShouldClear(false)
 {
   mShaderProgram = CreateProgram(lineVertexShader, lineFragmentShader);
 
@@ -102,13 +105,6 @@ CurveBuilder::CurveBuilder()
 
   // Use a Vertex Array Object
   glGenVertexArrays(1, &mVertexArrayObject);
-  glBindVertexArray(mVertexArrayObject);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
   // Create a Vector Buffer Object that will store the vertices on video memory
   glGenBuffers(1, &mVertexBufferObject);
 
@@ -118,30 +114,77 @@ CurveBuilder::CurveBuilder()
   glBindVertexArray(0);
 }
 
+
+static glm::mat4 CreateViewMatrix(glm::vec3 aRight,
+                                  glm::vec3 aUp,
+                                  glm::vec3 aForward,
+                                  glm::vec3 aPosition)
+{
+  return { glm::vec4{ aRight.x, aRight.y, aRight.z, 0.0f },
+    glm::vec4{ aUp.x, aUp.y, aUp.z, 0.0f },
+    glm::vec4{ aForward.x, aForward.y, aForward.z, 0.0f },
+    glm::vec4{ aPosition.x, aPosition.y, aPosition.z, 1.0f } };
+}
+
 void CurveBuilder::Draw()
 {
-  glm::mat4 modelMatrix{};
-  glm::mat4 ModelMatrix = glm::scale(modelMatrix, mScale);
+  glm::mat4 model{};
+  model = glm::scale(model, mScale);
 
-  //int loc;
-  //uniform mat4 ProjectionMatrix, ViewMatrix, ModelMatrix;
-  //loc = glGetUniformLocation(mShaderProgram, "ProjectionMatrix");
-  //glUniformMatrix4fv(loc, 1, GL_TRUE, &ModelMatrix[0][0]);
-  //loc = glGetUniformLocation(mShaderProgram, "ViewMatrix");
-  //glUniformMatrix4fv(loc, 1, GL_TRUE, &ModelMatrix[0][0]);
-  //loc = glGetUniformLocation(mShaderProgram, "ModelMatrix");
-  //glUniformMatrix4fv(loc, 1, GL_TRUE, &ModelMatrix[0][0]);
+  auto width = static_cast<float>(mProject->mWindowSize.x);
+  auto height = static_cast<float>(mProject->mWindowSize.y);
+
+  auto projection = glm::ortho(0.0f,
+                               width,
+                               height,
+                               0.0f);
+
+
+  //
+  //auto projection = glm::perspective(glm::radians(45.0f),
+  //                                   width / height,
+  //                                   0.1f,
+  //                                   256.0f);
+
+  auto view = CreateViewMatrix({ 1.0f, 0.0f, 0.0f }, 
+                               { 0.0f, 1.0f, 0.0f }, 
+                               { 0.0f, 0.0f, -1.0f }, 
+                               { 0.0f, 0.0f, 2.0f });
+  
+
+  int loc;
+  loc = glGetUniformLocation(mShaderProgram, "Projection");
+  glUniformMatrix4fv(loc, 1, GL_TRUE, &projection[0][0]);
+  loc = glGetUniformLocation(mShaderProgram, "View");
+  glUniformMatrix4fv(loc, 1, GL_TRUE, &view[0][0]);
+  loc = glGetUniformLocation(mShaderProgram, "Model");
+  glUniformMatrix4fv(loc, 1, GL_TRUE, &model[0][0]);
+
+  glBindVertexArray(mVertexArrayObject);
 
   // Allocate space and upload the data from CPU to GPU
   glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_DYNAMIC_DRAW);
 
-  glUseProgram(mShaderProgram);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)));
 
-  glBindVertexArray(mVertexArrayObject);
+  glUseProgram(mShaderProgram);
+  glLineWidth(1.5f);
   glDrawArrays(GL_LINE_STRIP, 0, static_cast<int>(mVertices.size()));
 
-  Clear();
+  if (mShouldClear)
+  {
+    Clear();
+  }
+
+
+  //Clean
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 }
 
 void CurveBuilder::AddPoint(glm::vec2 aPoint)

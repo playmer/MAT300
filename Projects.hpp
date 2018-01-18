@@ -12,6 +12,10 @@ struct Project
 {
   Project()
     : m3D(false)
+    , mCurve(this)
+    , mXAxis(this)
+    , mYAxis(this)
+    , mZAxis(this)
   {
     mXAxis.mColor = glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f };
     mXAxis.AddPoint(glm::vec2{ -100.0f, 0.0f });
@@ -24,6 +28,8 @@ struct Project
     mZAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
     mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f, -100.0f });
     mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f,  100.0f });
+
+    mCurve.mShouldClear = true;
   }
 
   using ProjectFunction = void(*)(Project&);
@@ -55,6 +61,8 @@ struct Project
 
   PrivateImplementationDynamic mPrivate;
   int mControlPoints;
+
+  glm::ivec2 mWindowSize;
 
   bool m3D;
 };

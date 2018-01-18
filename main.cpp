@@ -51,7 +51,7 @@ void MessageCallback(GLenum source,
                      const GLchar* message,
                      const void* userParam)
 {
-  fprintf(stdout, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+  printf("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
     (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
     type, severity, message);
 }
@@ -93,6 +93,9 @@ int main(int, char**)
   while (!glfwWindowShouldClose(window))
   {
     glfwPollEvents();
+
+    glfwGetWindowSize(window, &project.mWindowSize.x, &project.mWindowSize.y);
+
     ImGui_ImplGlfwGL3_NewFrame();
 
     ImGui::SetNextWindowPos(ImVec2(350, 20), ImGuiSetCond_FirstUseEver);

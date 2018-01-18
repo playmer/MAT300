@@ -11,7 +11,6 @@
 #include "GL/gl3w.h"
 #include "GLFW/glfw3.h"
 
-
 #include "glm/common.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/quaternion.hpp"
@@ -20,6 +19,7 @@
 GLuint LoadAndCompileShader(const char *aSource, GLenum shaderType);
 GLuint CreateProgram(const char *aVertShaderSource, const char *aFragShaderSource);
 
+struct Project;
 
 struct Vertex
 {
@@ -45,7 +45,7 @@ struct Vertex
 
 struct CurveBuilder
 {
-  CurveBuilder();
+  CurveBuilder(Project *aProject);
   void Draw();
   void AddPoint(glm::vec3 aPoint);
   void AddPoint(glm::vec2 aPoint);
@@ -57,4 +57,6 @@ struct CurveBuilder
   GLuint mShaderProgram;
   glm::vec4 mColor;
   glm::vec3 mScale;
+  Project *mProject;
+  bool mShouldClear;
 };
