@@ -11513,9 +11513,6 @@ void ImGui::EndDragDropTarget()
 // Win32 API clipboard implementation
 #if defined(_WIN32) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS)
 
-#ifdef _MSC_VER
-#pragma comment(lib, "user32")
-#endif
 
 static const char* GetClipboardTextFn_DefaultImpl(void*)
 {
@@ -11585,9 +11582,6 @@ static void SetClipboardTextFn_DefaultImpl(void*, const char* text)
 #if defined(_WIN32) && !defined(__GNUC__) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS)
 
 #include <imm.h>
-#ifdef _MSC_VER
-#pragma comment(lib, "imm32")
-#endif
 
 static void ImeSetInputScreenPosFn_DefaultImpl(int x, int y)
 {
