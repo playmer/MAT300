@@ -16,6 +16,7 @@ struct Project
     , mXAxis(this)
     , mYAxis(this)
     , mZAxis(this)
+    , mPosition(0.0f, 0.0f, 2.0f)
   {
     mXAxis.mColor = glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f };
     mXAxis.AddPoint(glm::vec2{ -100.0f, 0.0f });
@@ -58,6 +59,7 @@ struct Project
 
   glm::mat4 ProjectionMatrix;
   glm::mat4 ViewMatrix;
+  glm::vec3 mPosition;
 
   PrivateImplementationDynamic mPrivate;
   int mControlPoints;

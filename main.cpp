@@ -4,6 +4,7 @@
 #include "imgui_impl_glfw_gl3.h"
 
 #include <map>
+#include <chrono>
 
 #include "Rendering.hpp"
 #include "Projects.hpp"
@@ -89,9 +90,24 @@ int main(int, char**)
 
   Project project;
 
+  std::chrono::time_point<std::chrono::high_resolution_clock> mBegin = std::chrono::high_resolution_clock::now();
+  std::chrono::time_point<std::chrono::high_resolution_clock> mLastFrame = mBegin;
+
   // Main loop
   while (!glfwWindowShouldClose(window))
   {
+
+    std::chrono::duration<float> timeSpan =
+      std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - mLastFrame);
+    mLastFrame = std::chrono::high_resolution_clock::now();
+
+    //if (totalTime > PI)
+    //{
+    //  totalTime = 0.0f;
+    //}
+
+    float dt = timeSpan.count();
+
     glfwPollEvents();
 
     glfwGetWindowSize(window, &project.mWindowSize.x, &project.mWindowSize.y);
@@ -101,6 +117,26 @@ int main(int, char**)
     ImGui::SetNextWindowPos(ImVec2(350, 20), ImGuiSetCond_FirstUseEver);
 
     OptionsWindow(project);
+
+    float dx{ 0.0f };
+    float dy{ 0.0f };
+
+    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_UP))
+    {
+      dy += dt * 1.0f;
+    }
+    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_DOWN))
+    {
+      dy -= dt * 1.0f;
+    }
+    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_RIGHT))
+    {
+      dx += dt * 1.0f;
+    }
+    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_LEFT))
+    {
+      dx -= dt * 1.0f;
+    }
 
     // Rendering
     int display_w, display_h;

@@ -149,16 +149,16 @@ void CurveBuilder::Draw()
   auto view = CreateViewMatrix({ 1.0f, 0.0f, 0.0f }, 
                                { 0.0f, 1.0f, 0.0f }, 
                                { 0.0f, 0.0f, -1.0f }, 
-                               { 0.0f, 0.0f, 2.0f });
+                               mProject->mPosition);
   
 
   int loc;
   loc = glGetUniformLocation(mShaderProgram, "Projection");
-  glUniformMatrix4fv(loc, 1, GL_TRUE, &projection[0][0]);
+  glUniformMatrix4fv(loc, 1, true, &projection[0][0]);
   loc = glGetUniformLocation(mShaderProgram, "View");
-  glUniformMatrix4fv(loc, 1, GL_TRUE, &view[0][0]);
+  glUniformMatrix4fv(loc, 1, true, &view[0][0]);
   loc = glGetUniformLocation(mShaderProgram, "Model");
-  glUniformMatrix4fv(loc, 1, GL_TRUE, &model[0][0]);
+  glUniformMatrix4fv(loc, 1, true, &model[0][0]);
 
   glBindVertexArray(mVertexArrayObject);
 
