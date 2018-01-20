@@ -79,13 +79,13 @@ void main()
 const char* lineFragmentShader = R"foo(
 #version 330
 
-in vec4 inColor;
+in vec4 outColor;
 out vec4 out_color;
 
 void main()
 {
   //out_color = vec4(1.0f,0.0f,0.0f,1.0f);
-  out_color = inColor;
+  out_color = outColor;
 }
 )foo";
 
@@ -98,18 +98,29 @@ CurveBuilder::CurveBuilder(Project *aProject)
   mShaderProgram = CreateProgram(lineVertexShader, lineFragmentShader);
 
   // Get the location of the attributes that enters in the vertex shader
-  glBindAttribLocation(mShaderProgram, 0, "inPosition");
-  glBindAttribLocation(mShaderProgram, 1, "inColor");
+  //glBindAttribLocation(mShaderProgram, 0, "inPosition");
+  //glBindAttribLocation(mShaderProgram, 1, "inColor");
 
   LinkProgram(mShaderProgram);
 
   // Use a Vertex Array Object
   glGenVertexArrays(1, &mVertexArrayObject);
+  glBindVertexArray(mVertexArrayObject);
+
   // Create a Vector Buffer Object that will store the vertices on video memory
   glGenBuffers(1, &mVertexBufferObject);
 
-  //Clean
+  // Allocate space and upload the data from CPU to GPU
+  glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_DYNAMIC_DRAW);
+
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(4 * sizeof(float)));
+
+  //Clean
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
@@ -136,8 +147,8 @@ void CurveBuilder::Draw()
 
   auto projection = glm::ortho(0.0f,
                                width,
-                               height,
-                               0.0f);
+                               0.0f,
+                               height);
 
 
   //
@@ -151,6 +162,7 @@ void CurveBuilder::Draw()
                                { 0.0f, 0.0f, -1.0f }, 
                                mProject->mPosition);
   
+  glUseProgram(mShaderProgram);
 
   int loc;
   loc = glGetUniformLocation(mShaderProgram, "Projection");
@@ -166,12 +178,6 @@ void CurveBuilder::Draw()
   glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_DYNAMIC_DRAW);
 
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  glUseProgram(mShaderProgram);
   glLineWidth(4.5f);
   glDrawArrays(GL_LINE_STRIP, 0, static_cast<int>(mVertices.size()));
 
@@ -180,9 +186,7 @@ void CurveBuilder::Draw()
     Clear();
   }
 
-
   //Clean
-  glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }

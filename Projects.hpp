@@ -27,9 +27,9 @@ struct Project
     mYAxis.AddPoint(glm::vec2{ 0.0f, -100.0f });
     mYAxis.AddPoint(glm::vec2{ 0.0f,  100.0f });
 
-    mZAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
-    mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f, -100.0f });
-    mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f,  100.0f });
+    //mZAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
+    //mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f, -100.0f });
+    //mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f,  100.0f });
 
     mCurve.mShouldClear = true;
   }
@@ -45,7 +45,7 @@ struct Project
 
     if (m3D)
     {
-      mZAxis.Draw();
+      //mZAxis.Draw();
     }
   }
 
