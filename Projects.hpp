@@ -17,6 +17,7 @@ struct Project
     , mYAxis(this)
     , mZAxis(this)
     , mPosition(0.0f, 0.0f, 2.0f)
+    , mControlPoints(0)
   {
     mXAxis.mColor = glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f };
     mXAxis.AddPoint(glm::vec2{ -100.0f, 0.0f });
