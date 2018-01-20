@@ -1,6 +1,6 @@
 #include "Projects.hpp"
 #include "Rendering.hpp"
-
+#include <glm/gtc/type_ptr.hpp>
 
 // Compile a shader
 GLuint LoadAndCompileShader(const char *aSource, GLenum aShaderType)
@@ -115,7 +115,7 @@ CurveBuilder::CurveBuilder(Project *aProject)
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_DYNAMIC_DRAW);
 
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0));
 
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(4 * sizeof(float)));
@@ -137,6 +137,64 @@ static glm::mat4 CreateViewMatrix(glm::vec3 aRight,
     glm::vec4{ aPosition.x, aPosition.y, aPosition.z, 1.0f } };
 }
 
+
+
+glm::mat4 NicksViewMatrix(glm::vec3 aRight,
+                          glm::vec3 aUp,
+                          glm::vec3 aForward,
+                          glm::vec3 aPosition)
+{
+
+  glm::vec3 p = aPosition;
+
+  glm::mat4 view;
+
+  // column 0
+  view[0][0] =      aRight.x;
+  view[1][0] =      aRight.y;
+  view[2][0] =      aRight.z;
+  view[3][0] = -dot(aRight, p);
+
+  // column 1
+  view[0][1] =      aUp.x;
+  view[1][1] =      aUp.y;
+  view[2][1] =      aUp.z;
+  view[3][1] = -dot(aUp, p);
+
+  // column 2
+  view[0][2] =    -aForward.x;
+  view[1][2] =    -aForward.y;
+  view[2][2] =    -aForward.z;
+  view[3][2] = dot(aForward, p);
+
+  view[3][3] = 1.0f;
+
+  return view;
+}
+
+
+
+glm::mat4 NicksProjMatrix(int aWidth, int aHeight)
+{
+  glm::mat4 proj;
+
+  float rad = glm::radians(45.0f);
+  float tanHalfFovy = tan(rad / 2.0f);
+  float aspect = (float)aWidth / aHeight;
+  float zNear = 0.1f;
+  float zFar = 100.0f;
+
+  proj[0][0] = 1.0f / (aspect * tanHalfFovy);
+  proj[1][1] = 1.0f / (tanHalfFovy);
+  proj[2][2] = -(zFar + zNear) / (zFar - zNear);
+  proj[2][3] = -1.0f;
+  proj[3][2] = -(2.0f * zFar * zNear) / (zFar - zNear);
+
+  return proj;
+}
+
+
+
 void CurveBuilder::Draw()
 {
   glm::mat4 model{};
@@ -145,32 +203,33 @@ void CurveBuilder::Draw()
   auto width = static_cast<float>(mProject->mWindowSize.x);
   auto height = static_cast<float>(mProject->mWindowSize.y);
 
-  auto projection = glm::ortho(0.0f,
-                               width,
-                               0.0f,
-                               height);
+  //auto projection = glm::ortho(0.0f, width, height, 0.0f, 0.1f, 100.0f);
 
 
-  //
   //auto projection = glm::perspective(glm::radians(45.0f),
   //                                   width / height,
   //                                   0.1f,
-  //                                   256.0f);
+  //                                   100.0f);
 
-  auto view = CreateViewMatrix({ 1.0f, 0.0f, 0.0f }, 
+  auto projection = NicksProjMatrix(width, height);
+
+  auto view = NicksViewMatrix({ 1.0f, 0.0f, 0.0f },
                                { 0.0f, 1.0f, 0.0f }, 
                                { 0.0f, 0.0f, -1.0f }, 
                                mProject->mPosition);
-  
+
+
   glUseProgram(mShaderProgram);
 
   int loc;
   loc = glGetUniformLocation(mShaderProgram, "Projection");
-  glUniformMatrix4fv(loc, 1, true, &projection[0][0]);
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projection));
+
   loc = glGetUniformLocation(mShaderProgram, "View");
-  glUniformMatrix4fv(loc, 1, true, &view[0][0]);
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
+  
   loc = glGetUniformLocation(mShaderProgram, "Model");
-  glUniformMatrix4fv(loc, 1, true, &model[0][0]);
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
 
   glBindVertexArray(mVertexArrayObject);
 
@@ -187,7 +246,7 @@ void CurveBuilder::Draw()
   }
 
   //Clean
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  //glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
 

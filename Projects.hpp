@@ -16,16 +16,16 @@ struct Project
     , mXAxis(this)
     , mYAxis(this)
     , mZAxis(this)
-    , mPosition(0.0f, 0.0f, 2.0f)
+    , mPosition(0.0f, 0.0f, 15.0f)
     , mControlPoints(0)
   {
     mXAxis.mColor = glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f };
-    mXAxis.AddPoint(glm::vec2{ -100.0f, 0.0f });
-    mXAxis.AddPoint(glm::vec2{ 100.0f, 0.0f });
+    mXAxis.AddPoint(glm::vec2{ -2.0f, 0.0f });
+    mXAxis.AddPoint(glm::vec2{  2.0f, 0.0f });
 
     mYAxis.mColor = glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f };
-    mYAxis.AddPoint(glm::vec2{ 0.0f, -100.0f });
-    mYAxis.AddPoint(glm::vec2{ 0.0f,  100.0f });
+    mYAxis.AddPoint(glm::vec2{ 0.0f, -1.0f });
+    mYAxis.AddPoint(glm::vec2{ 0.0f,  1.0f });
 
     //mZAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
     //mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f, -100.0f });
