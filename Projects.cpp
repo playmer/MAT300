@@ -26,6 +26,11 @@ struct Project1Config
   Project1Type mType;
 };
 
+void P1_NLI(Project &aProject)
+{
+  auto &curve = aProject.mCurve;
+}
+
 
 void Project1(Project &aProject)
 {

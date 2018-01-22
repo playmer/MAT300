@@ -103,6 +103,10 @@ CurveBuilder::CurveBuilder(Project *aProject)
 
   LinkProgram(mShaderProgram);
 
+  mProjectionLocation = glGetUniformLocation(mShaderProgram, "Projection");
+  mViewLocation = glGetUniformLocation(mShaderProgram, "View");
+  mModelLocation = glGetUniformLocation(mShaderProgram, "Model");
+
   // Use a Vertex Array Object
   glGenVertexArrays(1, &mVertexArrayObject);
   glBindVertexArray(mVertexArrayObject);
@@ -115,10 +119,10 @@ CurveBuilder::CurveBuilder(Project *aProject)
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_DYNAMIC_DRAW);
 
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0));
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
 
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(4 * sizeof(float)));
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)));
 
   //Clean
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -206,30 +210,32 @@ void CurveBuilder::Draw()
   //auto projection = glm::ortho(0.0f, width, height, 0.0f, 0.1f, 100.0f);
 
 
-  //auto projection = glm::perspective(glm::radians(45.0f),
-  //                                   width / height,
-  //                                   0.1f,
-  //                                   100.0f);
+  auto projection = glm::perspective(glm::radians(45.0f),
+                                     width / height,
+                                     0.1f,
+                                     100.0f);
 
-  auto projection = NicksProjMatrix(width, height);
+  //auto projection = NicksProjMatrix(width, height);
+  //const float projection[4][4] =
+  //{
+  //    { 2.0f / width, 0.0f,           0.0f, 0.0f },
+  //    { 0.0f,         2.0f / -height, 0.0f, 0.0f },
+  //    { 0.0f,         0.0f,          -1.0f, 0.0f },
+  //    {-1.0f,         1.0f,           0.0f, 1.0f },
+  //};
 
   auto view = NicksViewMatrix({ 1.0f, 0.0f, 0.0f },
-                               { 0.0f, 1.0f, 0.0f }, 
-                               { 0.0f, 0.0f, -1.0f }, 
-                               mProject->mPosition);
+                              { 0.0f, 1.0f, 0.0f }, 
+                              { 0.0f, 0.0f, -1.0f }, 
+                              mProject->mPosition);
 
+  //glm::mat4 view;
 
   glUseProgram(mShaderProgram);
 
-  int loc;
-  loc = glGetUniformLocation(mShaderProgram, "Projection");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projection));
-
-  loc = glGetUniformLocation(mShaderProgram, "View");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
-  
-  loc = glGetUniformLocation(mShaderProgram, "Model");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
+  glUniformMatrix4fv(mProjectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+  glUniformMatrix4fv(mViewLocation, 1, GL_FALSE, glm::value_ptr(view));
+  glUniformMatrix4fv(mModelLocation, 1, GL_FALSE, glm::value_ptr(model));
 
   glBindVertexArray(mVertexArrayObject);
 

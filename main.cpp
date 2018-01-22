@@ -120,6 +120,7 @@ int main(int, char**)
 
     float dx{ 0.0f };
     float dy{ 0.0f };
+    float dz{ 0.0f };
 
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_UP))
     {
@@ -137,6 +138,18 @@ int main(int, char**)
     {
       dx -= dt * 1.0f;
     }
+    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_PAGE_UP))
+    {
+      dz -= dt * 1.0f;
+    }
+    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
+    {
+      dz += dt * 1.0f;
+    }
+
+    project.mPosition.x += dx;
+    project.mPosition.y += dy;
+    project.mPosition.z += dz;
 
     // Rendering
     int display_w, display_h;

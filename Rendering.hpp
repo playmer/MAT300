@@ -55,6 +55,9 @@ struct CurveBuilder
   GLuint mVertexArrayObject;
   GLuint mVertexBufferObject;
   GLuint mShaderProgram;
+  GLuint mProjectionLocation;
+  GLuint mViewLocation;
+  GLuint mModelLocation;
   glm::vec4 mColor;
   glm::vec3 mScale;
   Project *mProject;
