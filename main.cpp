@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <stdio.h>
 
 #include "imgui.h"
@@ -37,15 +39,15 @@ static void ShowHelpMarker(const char* desc)
 
 void OptionsWindow(Project &aProject)
 {
-  ImGui::Begin("MainWindow", nullptr);
+  ImGui::Begin("Options Window", nullptr);
 
   if (ImGui::Button("Reset Camera"))
   {
     aProject.mPosition = { 5.24f, 0.0f, 7.39f };
   }
 
-  ImGui::SliderInt("Control Points", &aProject.mControlPoints, 2, 80);
-  ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
+  ImGui::SliderInt("Control Points", &aProject.mControlPoints, 2, 21);
+  ImGui::SameLine(); ShowHelpMarker("or, d + 1");
 
   if (aProject.mControlPoints != static_cast<int>(aProject.mPoints.size()))
   {
@@ -179,9 +181,10 @@ float Vector2DDistance(glm::vec2 &pVec0, glm::vec2 &pVec1)
 
 
 
-bool StaticPointToStaticCircle(glm::vec2 &aP, glm::vec2 &aCenter, float Radius)
+bool StaticPointToStaticCircle(glm::vec2 &aP, glm::vec2 &aCenter, float Radius, float &distance)
 {
-  if (Radius >= Vector2DDistance(aP, aCenter))
+  distance = Vector2DDistance(aP, aCenter);
+  if (Radius >= distance)
   {
     return true;
   }
@@ -321,6 +324,7 @@ int main(int, char**)
         glm::mat4 model{};
         model = glm::scale(model, scale);
 
+        float lowestDistance = std::numeric_limits<float>::max();
         for (size_t i{ 0 }; i < project.mPointDrawer.mVertices.size(); ++i)
         {
           glm::vec2 point{ project.mPointDrawer.mVertices[i].mPosition.x, 
@@ -329,38 +333,24 @@ int main(int, char**)
           auto scaledIntersection = model * glm::vec4{ intersection, 1.0f };
 
           glm::vec2 intersection2D{ scaledIntersection.x, scaledIntersection.y };
+          float distance;
           
-          if (StaticPointToStaticCircle(intersection2D, point, 0.04))
+          if (StaticPointToStaticCircle(intersection2D, point, 0.06f, distance) && distance < lowestDistance)
           {
+            lowestDistance = distance;
             gSelectedPoint = i;
           }
         }
       }
 
-      //auto it = project.mPointDrawer.mFloatToPoints.find(pixel);
-      //
-      //if (it != project.mPointDrawer.mFloatToPoints.end())
-      //{
-      //  //printf("x: %f, y: %f, r: %f, g: %f, b: %f, a: %f, i:%d\n", 
-      //  //       x, 
-      //  //       y, 
-      //  //       pixelData[0], 
-      //  //       pixelData[1], 
-      //  //       pixelData[2], 
-      //  //       pixelData[3], 
-      //  //       static_cast<int>(it->second));
-      //
-      //  gSelectedPoint = static_cast<int>(it->second);
-      //}
-
       if (gMouseDown && gSelectedPoint >= 0 && success)
       {
         glm::vec3 intersection2{};
 
-        printf("x: %f, y: %f, z: %f\n",
-               intersection.x,
-               intersection.y,
-               intersection.z); 
+        //printf("x: %f, y: %f, z: %f\n",
+        //       intersection.x,
+        //       intersection.y,
+        //       intersection.z); 
 
         project.mPoints[gSelectedPoint] = intersection.y;
       }

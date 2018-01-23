@@ -603,38 +603,3 @@ void PointDrawer::FromYValues(std::vector<float> &aPoints)
     AddPoint({ i * offset, aPoints[i], 0.0f });
   }
 }
-
-void PointDrawer::SetUpFloatToPoints()
-{
-  //auto offset = 1.0f / (mVertices.size() - 1);
-  //
-  //for (size_t i{ 0 }; i < mVertices.size(); ++i)
-  //{
-  //  mVertices[i].mColor.g = i * offset;
-  //
-  //  mFloatToPoints[mVertices[i].mColor] = i;
-  //}
-}
-
-
-bool nearlyEqual(float a, float b, float epsilon)
-{
-  float absA = std::abs(a);
-  float absB = std::abs(b);
-  float diff = std::abs(a - b);
-
-  if (a == b)
-  { // shortcut, handles infinities
-    return true;
-  }
-  else if (a == 0 || b == 0 || diff < std::numeric_limits<float>::min())
-  {
-    // a or b is zero or both are extremely close to it
-    // relative error is less meaningful here
-    return diff < (epsilon * std::numeric_limits<float>::min());
-  }
-  else
-  { // use relative error
-    return diff / std::min((absA + absB), std::numeric_limits<float>::max()) < epsilon;
-  }
-}

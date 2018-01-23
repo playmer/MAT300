@@ -1,12 +1,29 @@
-# PerformanceAnalytics
-Working on a Performance Analyser using ImGui. It's pretty early, but it kindof works. I'd like to eventually make a few different ways to interact with it. One where it runs at it's own application and can take and look at various formats of data, perhaps where it can take live data from a socket. Maybe one where you can just use it with your own ImGui application and it's more of a library. I dunno!
+Build Instructions:
+  1. Must have a very recent version of Visual Studio 2017 (recommended: 15.5)
+  2. Once opened, make sure to select x64, the x86 configuration is not
+     supported.
+  3. Build as normal. (Select Build, Press Build All)
 
-#Issues
-- Currently there's no "time" display. How the blocks are displayed is mostly based on however dear ImGui figures out where to put the next object on a line/next line based on how big they are and how they're being grouped. I'm not yet sure how to make this an "absolute" thing like what @ocornut (The creator of dear ImGui) does in his game engine or how the Telemetry folks do it.
+Controls:
+  1. Control Points can be added by moving the horizontal slider at the top 
+     of the main window.
+  2. Control Points can have their Y value manipulated by using the vertical
+     sliders below the control point slider, as well as clicking and dragging
+     the points themselves. Though the second might be a little finicky. I'm
+     still new at picking.
+  3. The graph can be moved around by using the arrow keys.
+  4. You can zoom in and out using page up and page down.
+  5. The project can be selected using the drop down below the vertical
+     sliders.
+  6. In the case of Project 1 (this submission), NLI or BB can be selected
+     using the radio buttons below the project drop down.
+  7. The Options Window can be moved around, resized, or "minimized" as desired.
+     The resizing tool is at the bottom right of the Options Window, it's movable
+     by clicking anywhere inside it there isn't a button or some such and dragging,
+     and it can be "minimized" or unminimized by simply clicking the arrow in the
+     top left.
 
-  - A sub problem of that (something that would seemingly be easier to fix in the short-term) is that currently each grouping seems to indent slightly.
-  - Another sub problem is that Selectables (what's being used to display each block) seem to have a miniumum size, and just odd size properties in general. So the sizes are skewed the smaller I go.
-
-- If a block is partially offscreen (to the left) the beginning of the text doesn't get moved to the start of the screen, it just stays happily offscreen.
-- Scrolling isn't normalized when zooming in and out. I suspect I'll fix this quickly (Next time I work on it), I'm just screwing up the math.
-- And so many more.
+Notes/Issues:
+  1. BB currently has has issues beyond 21 control points, since 20 is the 
+     max for testing, I'll cap the input at 20.
+  2. The actual project math is done in Projects.cpp

@@ -68,43 +68,6 @@ struct LineDrawer
   bool mShouldClear;
 };
 
-bool nearlyEqual(float a, float b, float epsilon);
-
-struct floatComparison
-{
-  static inline bool vec4Cmp(const glm::vec4 &a, const glm::vec4 &b)
-  {
-    const float *i = &a[0];
-    const float *j = &b[0];
-    size_t count{ 0 };
-
-    while ((count < 4) && *i == *j)
-    {
-      ++i;
-      ++j;
-      ++count;
-    }
-
-    if (*i == *j)
-    {
-      return 0;
-    }
-    else
-    {
-      return *i - *j;
-    }
-  }
-
-  bool operator()(const glm::vec4 &a, const glm::vec4 &b) const
-  {
-    auto x = nearlyEqual(a.x, b.x, 0.00625f);
-    auto y = nearlyEqual(a.y, b.y, 0.00625f);
-    auto z = nearlyEqual(a.z, b.z, 0.00625f);
-
-    return (x && y && z) ? false : vec4Cmp(a, b);
-  }
-};
-
 struct PointDrawer
 {
   PointDrawer(Project *aProject);
@@ -116,11 +79,7 @@ struct PointDrawer
   void ToGPU();
   void Clear();
 
-  void SetUpFloatToPoints();
-
   std::vector<Vertex> mVertices;
-  std::map<glm::vec4, size_t, floatComparison> mFloatToPoints;
-  //std::map<float, size_t> mFloatToPoints;
   GLuint mVertexArrayObject;
   GLuint mVertexBufferObject;
   GLuint mShaderProgram;
