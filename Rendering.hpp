@@ -42,6 +42,53 @@ struct Vertex
 };
 
 
+struct LineDrawer
+{
+  LineDrawer(Project *aProject);
+  void Draw();
+  void AddLine(glm::vec3 aPoint1, glm::vec3 aPoint2);
+  void AddLine(glm::vec2 aPoint1, glm::vec2 aPoint2);
+
+  void ToGPU();
+  void Clear();
+
+  std::vector<Vertex> mVertices;
+  GLuint mVertexArrayObject;
+  GLuint mVertexBufferObject;
+  GLuint mShaderProgram;
+  GLuint mProjectionLocation;
+  GLuint mViewLocation;
+  GLuint mModelLocation;
+  glm::vec4 mColor;
+  glm::vec3 mScale;
+  Project *mProject;
+  bool mShouldClear;
+};
+
+
+struct PointDrawer
+{
+  PointDrawer(Project *aProject);
+  void Draw();
+  void AddPoint(glm::vec3 aPoint);
+  void AddPoint(glm::vec2 aPoint);
+
+  void FromYValues(std::vector<float> &aPoints);
+  void ToGPU();
+  void Clear();
+
+  std::vector<Vertex> mVertices;
+  GLuint mVertexArrayObject;
+  GLuint mVertexBufferObject;
+  GLuint mShaderProgram;
+  GLuint mProjectionLocation;
+  GLuint mViewLocation;
+  GLuint mModelLocation;
+  glm::vec4 mColor;
+  glm::vec3 mScale;
+  Project *mProject;
+  bool mShouldClear;
+};
 
 struct CurveBuilder
 {

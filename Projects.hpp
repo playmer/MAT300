@@ -10,29 +10,7 @@
 
 struct Project
 {
-  Project()
-    : m3D(false)
-    , mCurve(this)
-    , mXAxis(this)
-    , mYAxis(this)
-    , mZAxis(this)
-    , mPosition(0.0f, 0.0f, 15.0f)
-    , mControlPoints(0)
-  {
-    mXAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
-    mXAxis.AddPoint(glm::vec2{ -2.0f, 0.0f });
-    mXAxis.AddPoint(glm::vec2{  2.0f, 0.0f });
-
-    mYAxis.mColor = glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
-    mYAxis.AddPoint(glm::vec2{ 0.0f, -1.0f });
-    mYAxis.AddPoint(glm::vec2{ 0.0f,  1.0f });
-
-    //mZAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
-    //mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f, -100.0f });
-    //mZAxis.AddPoint(glm::vec3{ 0.0f, 0.0f,  100.0f });
-
-    mCurve.mShouldClear = true;
-  }
+  Project();
 
   using ProjectFunction = void(*)(Project&);
   static std::vector<std::pair<std::string, ProjectFunction>> aProjectFunctions;
@@ -47,16 +25,20 @@ struct Project
     {
       //mZAxis.Draw();
     }
+
+    mCurve.Draw();
+
+    mPointDrawer.FromYValues(mPoints);
+    mPointDrawer.ToGPU();
+    mPointDrawer.Draw();
   }
 
   CurveBuilder mCurve;
 
-  // Yeah I know this is overkill, but it makes things easier.
-  CurveBuilder mXAxis;
-  CurveBuilder mYAxis;
-  CurveBuilder mZAxis;
-
-  //glm::mat4 mW
+  LineDrawer mXAxis;
+  LineDrawer mYAxis;
+  LineDrawer mZAxis;
+  PointDrawer mPointDrawer;
 
   glm::mat4 ProjectionMatrix;
   glm::mat4 ViewMatrix;
@@ -64,6 +46,8 @@ struct Project
 
   PrivateImplementationDynamic mPrivate;
   int mControlPoints;
+
+  std::vector<float> mPoints;
 
   glm::ivec2 mWindowSize;
 

@@ -34,6 +34,31 @@ void OptionsWindow(Project &aProject)
   ImGui::SliderInt("Control Points", &aProject.mControlPoints, 2, 80);
   ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
+  if (aProject.mControlPoints != static_cast<int>(aProject.mPoints.size()))
+  {
+    aProject.mPoints.clear();
+    aProject.mPoints.resize(aProject.mControlPoints, 1.0f);
+  }
+
+  for (auto[point, i] : enumerate(aProject.mPoints))
+  {
+    int d = static_cast<int>(i);
+    ImGui::PushID(i);
+    ImGui::VSliderFloat("##v", ImVec2(10, 160), &(*point), -3.0f, 3.0f, "");
+    
+    if (ImGui::IsItemActive() || ImGui::IsItemHovered())
+    {
+      ImGui::SetTooltip("Control Point %d, at y = %f", d, *point);
+    }
+
+    if (i != (aProject.mPoints.size() - 1))
+    {
+      ImGui::SameLine();
+    }
+
+    ImGui::PopID();
+  }
+
   static int item{ 0 };
   ImGui::Combo("Project", &item, aProject.mProjectNames.data(), static_cast<int>(aProject.mProjectNames.size()));
 
@@ -86,7 +111,7 @@ int main(int, char**)
   // Setup ImGui binding
   ImGui_ImplGlfwGL3_Init(window, true);
   
-  ImVec4 clear_color = ImColor(114, 144, 154);
+  ImVec4 clear_color = ImColor(44, 44, 44);
 
   Project project;
 
@@ -124,27 +149,27 @@ int main(int, char**)
 
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_UP))
     {
-      dy += dt * 1.0f;
+      dy += dt * 1.0f * 40.0f;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_DOWN))
     {
-      dy -= dt * 1.0f;
+      dy -= dt * 1.0f * 40.0f;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_RIGHT))
     {
-      dx += dt * 1.0f;
+      dx += dt * 1.0f * 40.0f;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_LEFT))
     {
-      dx -= dt * 1.0f;
+      dx -= dt * 1.0f * 40.0f;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_PAGE_UP))
     {
-      dz -= dt * 1.0f;
+      dz -= dt * 1.0f * 40.0f;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
     {
-      dz += dt * 1.0f;
+      dz += dt * 1.0f * 40.0f;
     }
 
     project.mPosition.x += dx;
