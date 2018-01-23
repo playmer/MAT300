@@ -1,3 +1,6 @@
+Joshua T. Fisher
+MAT 300
+
 Build Instructions:
   1. Must have a very recent version of Visual Studio 2017 (recommended: 15.5)
   2. Once opened, make sure to select x64, the x86 configuration is not
@@ -5,9 +8,9 @@ Build Instructions:
   3. Build as normal. (Select Build, Press Build All)
 
 Controls:
-  1. Control Points can be added by moving the horizontal slider at the top 
+  1. Input Points can be added by moving the horizontal slider at the top 
      of the main window.
-  2. Control Points can have their Y value manipulated by using the vertical
+  2. Input Points can have their Y value manipulated by using the vertical
      sliders below the control point slider, as well as clicking and dragging
      the points themselves. Though the second might be a little finicky. I'm
      still new at picking.
@@ -22,6 +25,7 @@ Controls:
      by clicking anywhere inside it there isn't a button or some such and dragging,
      and it can be "minimized" or unminimized by simply clicking the arrow in the
      top left.
+  8. Input points can be reset to y = 1.0 by simply moving the Input Point bar.
 
 Notes/Issues:
   1. BB currently has has issues beyond 21 control points, since 20 is the 
