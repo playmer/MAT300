@@ -49,23 +49,6 @@ Project::Project()
                     {  0.1f, fI, 0.0f });
   }
 
-  
-  //for (int i{ 0 }; i > -100; --i)
-  //{
-  //  float fI = static_cast<float>(i);
-  //
-  //  for (int j{ 1 }; j < 10; ++j)
-  //  {
-  //    float tick = (-0.1f * j) + fI;
-  //    mYAxis.AddLine({ -0.05f, tick, 0.0f },
-  //                   {  0.05f, tick, 0.0f });
-  //  }
-  //    
-  //  mYAxis.AddLine({ -0.1f, fI, 0.0f },
-  //                 {  0.1f, fI, 0.0f });
-  //}
-
-
   mZAxis.mColor = glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
   mZAxis.AddLine({ 0.0f, 0.0f, -100.0f }, { 0.0f, 0.0f,  100.0f });
 
@@ -73,7 +56,7 @@ Project::Project()
   mYAxis.ToGPU();
   mZAxis.ToGPU();
 
-  mCurve.mColor = { 0.0f, 255.0f, 255.0f, 1.0f };
+  mCurve.mColor = { 0.0f, 1.0f, 1.0f, 1.0f };
   mCurve.mShouldClear = true;
 
   mPointDrawer.mColor = { 1.0f, 0.1f, 1.0f, 1.0f };
@@ -103,9 +86,60 @@ struct Project1Config
   std::vector<float> mQ;
 };
 
+size_t factorial(size_t n)
+{
+  if (0 == n)
+  {
+    return 1;
+  }
+
+  size_t product{ n };
+
+  for (size_t i{ n - 1 }; i > 0; --i)
+  {
+    product *= i;
+  }
+
+  return product;
+}
+
+float BernstienPolynomial(size_t d, size_t i, float t)
+{
+  //((1-t)^(d-i)) * (t^i) * ((d!)/((d - i)! * i!))
+  return static_cast<float>(glm::pow((1 - t), (d - i)) *
+    glm::pow(t, i) *
+    ((factorial(d)) / (factorial(d - i) * factorial(i))));
+}
+
+glm::vec2 P1_BB_GetPoint(Project &aProject, Project1Config &aConfig, size_t d, float t)
+{
+
+  float product{ 0.0f };
+  for (size_t i{ 0 }; i <= d; ++i)
+  {
+    auto a = aProject.mPoints[i];
+
+    product += BernstienPolynomial(d, i, t) * a;
+  }
+
+  return { t, product };
+}
+
 void P1_BB(Project &aProject)
 {
+  auto config = aProject.mPrivate.ConstructAndGetIfNotAlready<Project1Config>();
+
   auto &curve = aProject.mCurve;
+  auto d = aProject.mControlPoints - 1;
+
+  curve.Clear();
+
+  auto offset = 1.0f / (200 - 1);
+
+  for (size_t i{ 0 }; i < 200; ++i)
+  {
+    curve.AddPoint(P1_BB_GetPoint(aProject, *config, d, i * offset));
+  }
 }
 
 glm::vec2 P1_NLI_GetPoint(Project &aProject, Project1Config &aConfig, float u)
@@ -116,18 +150,8 @@ glm::vec2 P1_NLI_GetPoint(Project &aProject, Project1Config &aConfig, float u)
 
   Q = aProject.mPoints;
 
-  // From: https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/de-casteljau.html
-  //Input: array P[0:n] of n + 1 points and real number u in[0, 1]
-  //Output : point on curve, C(u)
-  //Working : point array Q[0:n]
-  //
-  //for i : = 0 to n do
-  //  Q[i] : = P[i]; // save input 
-  //for k : = 1 to n do
-  //  for i : = 0 to n - k do
-  //    Q[i] : = (1 - u)Q[i] + u Q[i + 1];
-  //return Q[0];
-
+  // Referenced: 
+  // https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/de-casteljau.html
   for (size_t k{ 1 }; k <= n; ++k)
   {
     auto nMinusK{ n - k };
@@ -150,7 +174,6 @@ void P1_NLI(Project &aProject)
   auto &curve = aProject.mCurve;
 
   curve.Clear();
-
 
   auto offset = 1.0f / (200 - 1);
 
@@ -176,7 +199,7 @@ void Project1(Project &aProject)
     }
     case Project1Type::BB:
     {
-      P1_NLI(aProject);
+      P1_BB(aProject);
       break;
     }
   }

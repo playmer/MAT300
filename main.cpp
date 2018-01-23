@@ -6,6 +6,14 @@
 #include <map>
 #include <chrono>
 
+#include "glm/geometric.hpp"
+#include "glm/gtx/intersect.hpp"
+#include "glm/common.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/quaternion.hpp"
+#include <glm/gtc/type_ptr.hpp>
+
+
 #include "Rendering.hpp"
 #include "Projects.hpp"
 
@@ -31,6 +39,11 @@ void OptionsWindow(Project &aProject)
 {
   ImGui::Begin("MainWindow", nullptr);
 
+  if (ImGui::Button("Reset Camera"))
+  {
+    aProject.mPosition = { 5.24f, 0.0f, 7.39f };
+  }
+
   ImGui::SliderInt("Control Points", &aProject.mControlPoints, 2, 80);
   ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
@@ -43,7 +56,7 @@ void OptionsWindow(Project &aProject)
   for (auto[point, i] : enumerate(aProject.mPoints))
   {
     int d = static_cast<int>(i);
-    ImGui::PushID(i);
+    ImGui::PushID(d);
     ImGui::VSliderFloat("##v", ImVec2(10, 160), &(*point), -3.0f, 3.0f, "");
     
     if (ImGui::IsItemActive() || ImGui::IsItemHovered())
@@ -82,6 +95,104 @@ void MessageCallback(GLenum source,
     type, severity, message);
 }
 
+struct CompilerOptions
+{
+#ifdef _DEBUG
+  using Release = std::integral_constant<bool, false>;
+  using Debug = std::integral_constant<bool, true>;
+#else
+  using Release = std::integral_constant<bool, true>;
+  using Debug = std::integral_constant<bool, false>;
+#endif
+};
+
+
+bool whereIntersectRayPlane
+(
+  glm::vec3 const & orig, glm::vec3 const & dir,
+  glm::vec3 const & planeOrig, glm::vec3 const & planeNormal,
+  glm::vec3 & intersectionPoint
+)
+{
+  glm::vec3::value_type d = glm::dot(dir, planeNormal);
+  glm::vec3::value_type Epsilon = std::numeric_limits<glm::vec3::value_type>::epsilon();
+
+  if (d < -Epsilon)
+  {
+    auto distance = glm::dot(planeOrig - orig, planeNormal) / d;
+    intersectionPoint = (distance * dir)  + orig;
+    return true;
+  }
+
+  return false;
+}
+
+bool viewToWorldCoordTransform(Project &aProject, int aMouseX, int aMouseY, glm::vec3 &intersection)
+{
+  auto width = static_cast<float>(aProject.mWindowSize.x);
+  auto height = static_cast<float>(aProject.mWindowSize.y);
+
+  float x = (2.0f * aMouseX) / width - 1.0f;
+  float y = 1.0f - (2.0f * aMouseY) / height;
+  float z = 1.0f;
+  glm::vec3 ray_nds = glm::vec3(x, y, z);
+
+  glm::vec4 ray_clip = glm::vec4(glm::vec2(ray_nds.x, ray_nds.y), -1.0, 1.0);
+
+  
+
+  auto projection = glm::perspective(glm::radians(45.0f),
+                                     width / height,
+                                     0.1f,
+                                     100.0f);
+
+  glm::vec4 ray_eye = glm::inverse(projection) * ray_clip;
+  ray_eye = glm::vec4(glm::vec2(ray_eye.x, ray_eye.y), -1.0, 0.0);
+
+  
+
+  auto view = NicksViewMatrix({ 1.0f, 0.0f, 0.0f },
+                              { 0.0f, 1.0f, 0.0f }, 
+                              { 0.0f, 0.0f, -1.0f }, 
+                              aProject.mPosition);
+
+  glm::vec4 ray_wor4 = (glm::inverse(view) * ray_eye);
+  glm::vec3 ray_wor = { ray_wor4.x, ray_wor4.y , ray_wor4.z };
+
+  // don't forget to normalize the vector at some point
+  ray_wor = glm::normalize(ray_wor);
+
+  glm::vec3 planeOrigin{ 0.0f, 0.0f,0.0f };
+  glm::vec3 planeNormal{ 0.0f, 0.0f, 1.0f };
+
+  return whereIntersectRayPlane(aProject.mPosition, ray_wor, planeOrigin, planeNormal, intersection);
+}
+
+
+float Vector2DDistance(glm::vec2 &pVec0, glm::vec2 &pVec1)
+{
+  float deltaX = pVec0.x - pVec1.x;
+  float deltaY = pVec0.y - pVec1.y;
+
+  return (float)sqrt((deltaX * deltaX) + (deltaY * deltaY));
+}
+
+
+
+bool StaticPointToStaticCircle(glm::vec2 &aP, glm::vec2 &aCenter, float Radius)
+{
+  if (Radius >= Vector2DDistance(aP, aCenter))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool gMouseDown{ false };
+int gSelectedPoint{ -1 };
 
 
 int main(int, char**)
@@ -93,7 +204,7 @@ int main(int, char**)
     return 1;
   }
 
-
+  glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -104,9 +215,14 @@ int main(int, char**)
   glfwMakeContextCurrent(window);
   gl3wInit();
 
+  glEnable(GL_MULTISAMPLE);
+
   // During init, enable debug output
   glEnable(GL_DEBUG_OUTPUT);
-  glDebugMessageCallback((GLDEBUGPROC)MessageCallback, 0);
+  if constexpr (CompilerOptions::Debug::value)
+  {
+    glDebugMessageCallback((GLDEBUGPROC)MessageCallback, 0);
+  }
 
   // Setup ImGui binding
   ImGui_ImplGlfwGL3_Init(window, true);
@@ -121,7 +237,6 @@ int main(int, char**)
   // Main loop
   while (!glfwWindowShouldClose(window))
   {
-
     std::chrono::duration<float> timeSpan =
       std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - mLastFrame);
     mLastFrame = std::chrono::high_resolution_clock::now();
@@ -147,34 +262,126 @@ int main(int, char**)
     float dy{ 0.0f };
     float dz{ 0.0f };
 
+    constexpr float cameraMoveSpeed = 2.0f;
+
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_UP))
     {
-      dy += dt * 1.0f * 40.0f;
+      dy += dt * 1.0f * cameraMoveSpeed;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_DOWN))
     {
-      dy -= dt * 1.0f * 40.0f;
+      dy -= dt * 1.0f * cameraMoveSpeed;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_RIGHT))
     {
-      dx += dt * 1.0f * 40.0f;
+      dx += dt * 1.0f * cameraMoveSpeed;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_LEFT))
     {
-      dx -= dt * 1.0f * 40.0f;
+      dx -= dt * 1.0f * cameraMoveSpeed;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_PAGE_UP))
     {
-      dz -= dt * 1.0f * 40.0f;
+      dz -= dt * 1.0f * cameraMoveSpeed;
     }
     if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
     {
-      dz += dt * 1.0f * 40.0f;
+      dz += dt * 1.0f * cameraMoveSpeed;
+    }
+
+    if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
+    {
+      double x, y;
+      glfwGetCursorPos(window, &x, &y);
+
+      float pixelData[4];
+
+      glReadPixels(static_cast<int>(x), 
+                   project.mWindowSize.y -  static_cast<int>(y), 
+                   1, 
+                   1, 
+                   GL_RGBA, 
+                   GL_FLOAT, 
+                   pixelData);
+
+      glm::vec4 pixel;
+      pixel.x = pixelData[0];
+      pixel.y = pixelData[1];
+      pixel.z = pixelData[2];
+      pixel.a = pixelData[3];
+
+      glm::vec3 intersection{};
+      auto success = viewToWorldCoordTransform(project, static_cast<int>(x), static_cast<int>(y), intersection);
+      if (success && false == gMouseDown)
+      {
+        glm::vec3 scale = { 1.0f / project.mXAxis.mScale.x,
+                            1.0f / project.mYAxis.mScale.y,
+                            1.0f / project.mZAxis.mScale.z };
+
+        glm::mat4 model{};
+        model = glm::scale(model, scale);
+
+        for (size_t i{ 0 }; i < project.mPointDrawer.mVertices.size(); ++i)
+        {
+          glm::vec2 point{ project.mPointDrawer.mVertices[i].mPosition.x, 
+                           project.mPointDrawer.mVertices[i].mPosition.y };
+
+          auto scaledIntersection = model * glm::vec4{ intersection, 1.0f };
+
+          glm::vec2 intersection2D{ scaledIntersection.x, scaledIntersection.y };
+          
+          if (StaticPointToStaticCircle(intersection2D, point, 0.04))
+          {
+            gSelectedPoint = i;
+          }
+        }
+      }
+
+      //auto it = project.mPointDrawer.mFloatToPoints.find(pixel);
+      //
+      //if (it != project.mPointDrawer.mFloatToPoints.end())
+      //{
+      //  //printf("x: %f, y: %f, r: %f, g: %f, b: %f, a: %f, i:%d\n", 
+      //  //       x, 
+      //  //       y, 
+      //  //       pixelData[0], 
+      //  //       pixelData[1], 
+      //  //       pixelData[2], 
+      //  //       pixelData[3], 
+      //  //       static_cast<int>(it->second));
+      //
+      //  gSelectedPoint = static_cast<int>(it->second);
+      //}
+
+      if (gMouseDown && gSelectedPoint >= 0 && success)
+      {
+        glm::vec3 intersection2{};
+
+        printf("x: %f, y: %f, z: %f\n",
+               intersection.x,
+               intersection.y,
+               intersection.z); 
+
+        project.mPoints[gSelectedPoint] = intersection.y;
+      }
+
+
+      gMouseDown = true;
+    }
+    else
+    {
+      gMouseDown = false;
+      gSelectedPoint = -1;
     }
 
     project.mPosition.x += dx;
     project.mPosition.y += dy;
     project.mPosition.z += dz;
+
+    if (project.mPosition.z < 0.1f)
+    {
+      project.mPosition.z = 0.1f;
+    }
 
     // Rendering
     int display_w, display_h;

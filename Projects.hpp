@@ -29,6 +29,7 @@ struct Project
     mCurve.Draw();
 
     mPointDrawer.FromYValues(mPoints);
+    mPointDrawer.SetUpFloatToPoints();
     mPointDrawer.ToGPU();
     mPointDrawer.Draw();
   }

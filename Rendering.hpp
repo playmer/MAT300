@@ -2,11 +2,14 @@
 
 #include <cmath>
 
+#include <algorithm>
 #include <chrono>
+#include <map>
 #include <memory>
 #include <thread>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 #include "GL/gl3w.h"
 #include "GLFW/glfw3.h"
@@ -65,6 +68,42 @@ struct LineDrawer
   bool mShouldClear;
 };
 
+bool nearlyEqual(float a, float b, float epsilon);
+
+struct floatComparison
+{
+  static inline bool vec4Cmp(const glm::vec4 &a, const glm::vec4 &b)
+  {
+    const float *i = &a[0];
+    const float *j = &b[0];
+    size_t count{ 0 };
+
+    while ((count < 4) && *i == *j)
+    {
+      ++i;
+      ++j;
+      ++count;
+    }
+
+    if (*i == *j)
+    {
+      return 0;
+    }
+    else
+    {
+      return *i - *j;
+    }
+  }
+
+  bool operator()(const glm::vec4 &a, const glm::vec4 &b) const
+  {
+    auto x = nearlyEqual(a.x, b.x, 0.00625f);
+    auto y = nearlyEqual(a.y, b.y, 0.00625f);
+    auto z = nearlyEqual(a.z, b.z, 0.00625f);
+
+    return (x && y && z) ? false : vec4Cmp(a, b);
+  }
+};
 
 struct PointDrawer
 {
@@ -77,13 +116,18 @@ struct PointDrawer
   void ToGPU();
   void Clear();
 
+  void SetUpFloatToPoints();
+
   std::vector<Vertex> mVertices;
+  std::map<glm::vec4, size_t, floatComparison> mFloatToPoints;
+  //std::map<float, size_t> mFloatToPoints;
   GLuint mVertexArrayObject;
   GLuint mVertexBufferObject;
   GLuint mShaderProgram;
   GLuint mProjectionLocation;
   GLuint mViewLocation;
   GLuint mModelLocation;
+  glm::vec4 mStartColor;
   glm::vec4 mColor;
   glm::vec3 mScale;
   Project *mProject;
@@ -110,3 +154,8 @@ struct CurveBuilder
   Project *mProject;
   bool mShouldClear;
 };
+
+glm::mat4 NicksViewMatrix(glm::vec3 aRight,
+                          glm::vec3 aUp,
+                          glm::vec3 aForward,
+                          glm::vec3 aPosition);
