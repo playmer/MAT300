@@ -338,7 +338,7 @@ int main(int, char**)
           if (StaticPointToStaticCircle(intersection2D, point, 0.06f, distance) && distance < lowestDistance)
           {
             lowestDistance = distance;
-            gSelectedPoint = i;
+            gSelectedPoint = static_cast<int>(i);
           }
         }
       }
