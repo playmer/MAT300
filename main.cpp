@@ -255,6 +255,15 @@ int main(int, char**)
 
     glfwGetWindowSize(window, &project.mWindowSize.x, &project.mWindowSize.y);
 
+    if (0 == project.mWindowSize.x)
+    {
+      project.mWindowSize.x = 100;
+    }
+    if (0 == project.mWindowSize.y)
+    {
+      project.mWindowSize.y = 100;
+    }
+
     ImGui_ImplGlfwGL3_NewFrame();
 
     ImGui::SetNextWindowPos(ImVec2(350, 20), ImGuiSetCond_FirstUseEver);
