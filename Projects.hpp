@@ -7,6 +7,12 @@
 #include "Rendering.hpp"
 
 
+enum class ControlPointType
+{
+  e1D,
+  e2D,
+  e3D,
+};
 
 struct Project
 {
@@ -21,9 +27,9 @@ struct Project
     mXAxis.Draw();
     mYAxis.Draw();
 
-    if (m3D)
+    if (ControlPointType::e3D == mType)
     {
-      //mZAxis.Draw();
+      mZAxis.Draw();
     }
 
     mCurve.Draw();
@@ -51,7 +57,7 @@ struct Project
 
   glm::ivec2 mWindowSize;
 
-  bool m3D;
+  ControlPointType mType;
 };
 
 

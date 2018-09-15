@@ -4,14 +4,14 @@
 #include "Projects.hpp"
 
 Project::Project()
-  : m3D(false)
-  , mCurve(this)
+  : mCurve(this)
   , mXAxis(this)
   , mYAxis(this)
   , mZAxis(this)
   , mPosition(5.24f, 0.0f, 7.39f)
   , mControlPoints(2)
   , mPointDrawer(this)
+  , mType(ControlPointType::e1D)
 {
   mXAxis.mColor = glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f };
   mXAxis.AddLine({ -100.0f, 0.0f }, { 100.0f, 0.0f });
@@ -205,9 +205,34 @@ void Project1(Project &aProject)
   }
 }
 
+enum class Project2Type : int
+{
+  NLI = 0,
+  BB = 1,
+  MPSD = 1
+};
+
 void Project2(Project &aProject)
 {
-  NotImplemented();
+  auto config = aProject.mPrivate.ConstructAndGetIfNotAlready<Project1Config>();
+
+  ImGui::RadioButton("NLI", (int*)(&config->mType), static_cast<int>(Project2Type::NLI)); ImGui::SameLine();
+  ImGui::RadioButton("BB", (int*)(&config->mType), static_cast<int>(Project2Type::BB)); ImGui::SameLine();
+  ImGui::RadioButton("MPSD", (int*)(&config->mType), static_cast<int>(Project2Type::MPSD)); ImGui::SameLine();
+
+  switch (config->mType)
+  {
+  case Project1Type::NLI:
+  {
+    P1_NLI(aProject);
+    break;
+  }
+  case Project1Type::BB:
+  {
+    P1_BB(aProject);
+    break;
+  }
+  }
 }
 
 void Project3(Project &aProject)

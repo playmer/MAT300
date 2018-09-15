@@ -55,24 +55,24 @@ void OptionsWindow(Project &aProject)
     aProject.mPoints.resize(aProject.mControlPoints, 1.0f);
   }
 
-  for (auto[point, i] : enumerate(aProject.mPoints))
-  {
-    int d = static_cast<int>(i);
-    ImGui::PushID(d);
-    ImGui::VSliderFloat("##v", ImVec2(10, 160), &(*point), -3.0f, 3.0f, "");
-    
-    if (ImGui::IsItemActive() || ImGui::IsItemHovered())
-    {
-      ImGui::SetTooltip("Control Point %d, at y = %f", d, *point);
-    }
-
-    if (i != (aProject.mPoints.size() - 1))
-    {
-      ImGui::SameLine();
-    }
-
-    ImGui::PopID();
-  }
+  //for (auto[point, i] : enumerate(aProject.mPoints))
+  //{
+  //  int d = static_cast<int>(i);
+  //  ImGui::PushID(d);
+  //  ImGui::VSliderFloat("##v", ImVec2(10, 160), &(*point), -3.0f, 3.0f, "");
+  //  
+  //  if (ImGui::IsItemActive() || ImGui::IsItemHovered())
+  //  {
+  //    ImGui::SetTooltip("Control Point %d, at y = %f", d, *point);
+  //  }
+  //
+  //  if (i != (aProject.mPoints.size() - 1))
+  //  {
+  //    ImGui::SameLine();
+  //  }
+  //
+  //  ImGui::PopID();
+  //}
 
   static int item{ 0 };
   ImGui::Combo("Project", &item, aProject.mProjectNames.data(), static_cast<int>(aProject.mProjectNames.size()));
@@ -381,6 +381,8 @@ int main(int, char**)
     {
       project.mPosition.z = 0.1f;
     }
+
+    ImGui::ShowMetricsWindow();
 
     // Rendering
     int display_w, display_h;
